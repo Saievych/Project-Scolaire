@@ -89,6 +89,10 @@ namespace FileCreater
 
                 Console.WriteLine("Your time for searching your phrase ({0}) : {1}, ticks : {2}", result, watch.Elapsed.Seconds, watch.Elapsed.Ticks);
             }
+            else
+            {
+                Console.WriteLine("There isn't your phrase, spent time for research  : {0}, ticks : {1}", watch.Elapsed.Seconds, watch.Elapsed.Ticks);
+            }
             watch.Stop();
             watch.Reset();
             Console.WriteLine("5 tests for multithread methode : Parallel.ForEach(File.ReadLines(fileName).AsParallel()");
