@@ -15,7 +15,7 @@ namespace FileCreater
         const string legalCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789 \n";
         const string searchPhrase = "gdfgdfHDF";
         private static Random random = new Random();
-        private static string fileName = System.IO.Directory.GetParent(@"../../ ").FullName + "/text.txt";
+        private static string fileName = Directory.GetParent(@"../../ ").FullName + "/text.txt";
 
         public static string RandomString()
         {
@@ -25,12 +25,11 @@ namespace FileCreater
 
         static void GenerateFile()
         {
-            string test = RandomString();
-            byte[] data = Encoding.ASCII.GetBytes(RandomString());
             using (FileStream stream = File.OpenWrite(fileName))
             {
                 for (int i = 0; i < sizeInMb * blocksPerMb; i++)
                 {
+                    byte[] data = Encoding.ASCII.GetBytes(RandomString());
                     stream.Write(data, 0, data.Length);
                 }
             }
@@ -42,11 +41,13 @@ namespace FileCreater
             {
                 GenerateFile();
             }
-            for (int i = 0; i < 25; i++)
+           
+            Console.WriteLine("5 tests for multithread methode : Parallel.ForEach(File.ReadLines(fileName).AsParallel()");
+            for (int i = 0; i < 5; i++)
             {
-                Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+                Stopwatch watch = Stopwatch.StartNew();
                 bool found = false;
-                
+
                 watch.Start();
                 Parallel.ForEach(File.ReadLines(fileName).AsParallel(), new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, (line, state) =>
                 {
@@ -60,18 +61,19 @@ namespace FileCreater
 
                 if (found)
                 {
-                    Console.WriteLine("Your time for searching your phrase ({0}) : {1}", searchPhrase, watch.ElapsedMilliseconds);
+                    Console.WriteLine("Your time for searching your phrase ({0}) : {1}, ticks : {2}", searchPhrase, watch.Elapsed.Seconds, watch.Elapsed.Ticks);
                 }
                 else
                 {
-                    Console.WriteLine("There is no your phrase in file, total time is : {0}", watch.ElapsedMilliseconds);
+                    Console.WriteLine("There is no your phrase in file, total time is : {0}, ticks : {1}", watch.Elapsed.Seconds, watch.Elapsed.Ticks);
                 }
                 watch.Stop();
             }
 
-            for (int i = 0; i < 25; i++)
+            Console.WriteLine("5 tests for multithread methode : Parallel.ForEach(File.ReadLines(fileName)");
+            for (int i = 0; i < 5; i++)
             {
-                Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+                Stopwatch watch = Stopwatch.StartNew();
                 bool found = false;
 
                 watch.Start();
@@ -87,12 +89,30 @@ namespace FileCreater
 
                 if (found)
                 {
-                    Console.WriteLine("Your time for searching your phrase ({0}) : {1}", searchPhrase, watch.ElapsedMilliseconds);
+                    Console.WriteLine("Your time for searching your phrase ({0}) : {1}, ticks : {2}", searchPhrase, watch.Elapsed.Seconds, watch.Elapsed.Ticks);
                 }
                 else
                 {
-                    Console.WriteLine("There is no your phrase in file, total time is : {0}", watch.ElapsedMilliseconds);
+                    Console.WriteLine("There is no your phrase in file, total time is : {0}, ticks : {1}", watch.Elapsed.Seconds, watch.Elapsed.Ticks);
                 }
+                watch.Stop();
+            }
+
+            Console.WriteLine("Test for one-thread methode : File.ReadLines(fileName)");
+            using (MemoryStream stream = new MemoryStream())
+            {
+                Stopwatch watch = Stopwatch.StartNew();
+                watch.Start();
+                var lines = File.ReadAllLines(fileName);
+                if (lines.Contains(searchPhrase))
+                {
+                    Console.WriteLine("Your time for searching your phrase ({0}) : {1}, ticks : {2}", searchPhrase, watch.Elapsed.Seconds, watch.Elapsed.Ticks);
+                }
+                else
+                {
+                    Console.WriteLine("There is no your phrase in file, total time is : {0}, ticks : {1}", watch.Elapsed.Seconds, watch.Elapsed.Ticks);
+                }
+                lines = null;
                 watch.Stop();
             }
             Console.ReadLine();
